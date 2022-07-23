@@ -2,7 +2,7 @@
 
 | PRFC | Title | Author | Version | Date First Published |
 | --- | ----- | ---- | --- | --- |
-| 2   | Non-Fungible Token Standard | ParallelChain Lab | 1 | July 23rd, 2022 | 
+| 2   | Non-Fungible Token Standard | ParallelChain Lab | 2 | July 23rd, 2022 | 
 
 ## Summary 
   
@@ -22,14 +22,11 @@ The 'Required Methods' section lists the set of methods that all smart contracts
 
 **Exclusive Spender**: A spender that is approved to transfer *all* tokens owned by an owner. An account can be made an Exclusive Spender either through a single call to `set_exclusive_spender` (preferred), or multiple calls to `set_spender`.  
 
-## Required Methods  
+## Required types
 
-The following uses syntax from Rust (version 1.59.0).
-
-**VIEW**
-`fn collection() -> Collection`
-
-Returns information about the Collection represented by this contract.
+```rust
+type TokenID = String;
+```
 
 ```rust
 struct Collection {
@@ -41,26 +38,9 @@ struct Collection {
 }
 ```
 
-**VIEW**
-`fn token_ids() -> Vec<TokenID>` 
-
-Returns the IDs of *all* tokens in this Collection. 
-
-**VIEW**
-`fn token_ids_of(owner: PublicAddress) -> Vec<TokenID>`
-
-Returns the IDs of *all* tokens owned by `owner`.
-
-**VIEW**
-`fn tokens(ids: Vec<TokenID>) -> Vec<Token>`
-
-Returns information about the Tokens identified by `ids`. 
-
-If an ID does not identify a token, it must not appear in the returned vector. 
-
 ```rust
 struct Token {
-    id: String,
+    id: TokenID,
 
     // Recommendation: uri should be an Internet URL, viewable on a browser.
     uri: Option<String>,
@@ -70,8 +50,31 @@ struct Token {
 }
 ```
 
-**ACTION**
-`fn transfer(token_id: String, to_address: Option<PublicAddress>)`
+## Required Views 
+
+The following uses syntax from Rust (version 1.59.0).
+
+### `fn collection() -> Collection`
+
+Returns information about the Collection represented by this contract.
+
+### `fn token_ids() -> Vec<TokenID>` 
+
+Returns the IDs of *all* tokens in this Collection. 
+
+### `fn token_ids_of(owner: PublicAddress) -> Vec<TokenID>`
+
+Returns the IDs of *all* tokens owned by `owner`.
+
+### `fn tokens(ids: Vec<TokenID>) -> Vec<Token>`
+
+Returns information about the Tokens identified by `ids`. 
+
+If an ID does not identify a token, it must not appear in the returned vector. 
+
+## Required Actions
+
+### `fn transfer(token_id: TokenID, to_address: Option<PublicAddress>)`
 
 'transfer' transfers the token identified by `token_id` from the account identified by `txn.from_address` (its owner), to the account identified by `to_address`. If `to_address` is None, this burns the token.
 
@@ -79,8 +82,7 @@ struct Token {
 
 Event `Transfer` must trigger if 'transfer' is successful.
 
-**ACTION** 
-`fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, token_id: String)`
+### `fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, token_id: TokenID)`
 
 'transfer_from' transfers the token identified by `token_id` from the account identified by `from_address`, to the account identified by `to_address`, on behalf of the account identified by get_owner(token_id). If `to_address` is None, this burns the Token.
 
@@ -91,8 +93,7 @@ Event `Transfer` must trigger if 'transfer' is successful.
 
 Event `Transfer` must trigger if ‘transfer_from’ is successful. 
 
-**ACTION** 
-`fn set_spender(token_id: String, spender_address: Option<protocol_types::PublicAddress>)`
+### `fn set_spender(token_id: TokenID, spender_address: Option<protocol_types::PublicAddress>)`
 
 If `spender_address` is Some, 'set_spender' gives the account identified by `spender_address` the right to transfer the token identified by `token_id` on behalf of its owner. Otherwise, it revokes `get_spender(token_id)` of its right.
 
@@ -103,8 +104,7 @@ If `spender_address` is Some, 'set_spender' gives the account identified by `spe
 
 Event `SetSpender` must trigger if 'set_spender' is successful.
 
-**ACTION** 
-`fn set_exclusive_spender(spender_address: Option<protocol_types::PublicAddress>)`
+### `fn set_exclusive_spender(spender_address: Option<protocol_types::PublicAddress>)`
 
 If `spender_address` is Some, 'set_exclusive_spender' gives the account identified by `spender_address` the right to transfer *all* tokens owned by `txn.from_address`. Otherwise, it revokes `get_exclusive_spender(token_id)` of its right. Calling this method MUST have the same side effects (except events emitted) as calling `set_spender` for every `token_id` owned by `txn.from_address`, with the same `spender_address`.
 
@@ -114,7 +114,7 @@ Event `SetExclusiveSpender` must trigger if 'set_exclusive_spender' is successfu
 
 In this section, `++` denotes bytes concatenation.
 
-`Transfer`
+### `Transfer`
 
 | Field | Value |
 | ----- | ----- |
@@ -123,7 +123,7 @@ In this section, `++` denotes bytes concatenation.
 
 Gets trigerred on successful call to methods 'transfer', or 'transfer_from'.
 
-`SetSpender`
+### `SetSpender`
 
 | Field | Value |
 | ----- | ----- |
@@ -132,7 +132,7 @@ Gets trigerred on successful call to methods 'transfer', or 'transfer_from'.
 
 Gets triggered on successful call to method 'set_spender'.
 
-`SetExclusiveSpender`
+### `SetExclusiveSpender`
 
 | Field | Value |
 | ----- | ----- |
