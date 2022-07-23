@@ -2,7 +2,7 @@
 
 | PRFC | Title | Author | Version | Date First Published |
 | --- | ----- | ---- | --- | --- |
-| 1   | Fungible Token Standard | ParallelChain Lab | 1 | July 7th, 2022 | 
+| 1   | Fungible Token Standard | ParallelChain Lab | 2 | July 23rd, 2022 | 
 
 ## Summary
 
@@ -14,13 +14,30 @@ The below section lists the set of methods that all smart contracts that want to
 
 ## Required Methods 
 
-Note: the following uses syntax from Rust (version 1.59.0).
+The following uses syntax from Rust (version 1.59.0).
+
+**VIEW** 
+`fn allowance(owner: PublicAddress, spender: PublicAddress) -> u64`
+
+Returns the number of tokens currently in spender's allowance that they can spend on ‘owner’s’ behalf.
+
+
+**VIEW**
+`fn total_supply() -> u64`
+
+Returns the total token supply. ‘Supply’ here means the sum of token balances over *all* addresses at any given point of time. Total supply may increase, for example, when new tokens are minted, or decrease, for example, when tokens are burned.
+
+
+**VIEW** 
+`fn balance_of(address: PublicAddress) -> u64`
+
+Queries the balance for an owner account 'address'.
+
 
 **ACTION** 
+`fn transfer(to_address: Option<Public_Address>, amount: u64)`
 
-`fn transfer(to_address: protocol_types:Public_Address, value: u64)`
-
-'transfer' transfers 'value' tokens to address 'to_address' from the account identified by txn.from_address.
+'transfer' transfers 'amount' tokens to address 'to_address' from the account identified by txn.from_address. If `to_address` is None, this burns the amount.
 
 Transfer must panic if txn.from_address's balance is less than amount.
 
@@ -28,18 +45,16 @@ Event `Transfer` must be emitted if 'transfer' is successful.
 
 
 **ACTION** 
+`fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, value: u64)`
 
-`fn transfer_from(from_address: protocol_types:Public_Address, to_address: protocol_types:Public_Address, value: u64)`
-
-'transfer_from' transfers 'amount' tokens to address 'to_address' on behalf of ‘owner’.
+'transfer_from' transfers 'amount' tokens to address 'to_address' on behalf of ‘owner’. If `to_address` is None, this burns the amount.
 
 transfer_from must panic if get_allowance_from(owner) < value.
 
-Event `Transfer` must trigger if ‘transfer_from’ is successful. Note that the value of the `Transfer` event should contain the owner address, not txn.from_address.
+Event `Transfer` must trigger if ‘transfer_from’ is successful. Note that the value of the `Transfer` event must contain the owner address, not txn.from_address.
 
 
 **ACTION** 
-
 `fn set_allowance(spender: PublicAddress, value: u64)`
 
 'set_allowance' allows 'spender' to withdraw from your account multiple times, up to 'value' amount. If this function is called again it overwrites the current allowance with 'value'.
@@ -48,35 +63,16 @@ set_allowance must panic if txn.from_address's balance is less than 'value'.
 
 Event `SetAllowance` must be emitted if set_allowance is successful.
 
-
-**VIEW** 
-
-`fn get_allowance(owner: PublicAddress, spender: PublicAddress) -> u64`
-
-‘get_allowance’ returns the number of tokens currently in spender's allowance that they can spend on ‘owner’s’ behalf.
-
-
-**VIEW**
-
-`fn total_supply() -> u64`
-
-'total_supply' returns the total token supply. ‘Supply’ here means the sum of token balances over *all* addresses at any given point of time. Total supply may increase, for example, when new tokens are minted, or decrease, for example, when tokens are burned. PRFC 1 has no opinion about how to implement minting and burning, nor does not require that contracts implement them.
-
-
-**VIEW** 
-
-`fn balance_of(address: PublicAddress) -> u64`
-
-'balance_of' queries the balance for an owner account 'address'.
-
 ## Required Events
+
+In this section, `++` denotes bytes concatenation.
 
 `Transfer`
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `0u8` |
-| Value | `owner_address: PublicAddress \|\| recipient_address: PublicAddress` |
+| Topic | `0u8 ++ owner_address ++ recipient_address: Option<PublicAddress>`  |
+| Value | `amount` |
 
 Gets emitted on successful token transfer through methods 'transfer' and 'transfer_from'.
 
@@ -84,8 +80,8 @@ Gets emitted on successful token transfer through methods 'transfer' and 'transf
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `1u8` |
-| Value | `owner_address: PublicAddress \|\| spender_address: PublicAddress` |
+| Topic | `1u8 ++ owner_address ++ spender_address` |
+| Value | `amount` |
 
 Gets triggered on successful delegation of tokens through method 'set_allowance'. 
 
