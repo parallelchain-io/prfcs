@@ -93,7 +93,7 @@ Event `Transfer` must trigger if 'transfer' is successful.
 
 Event `Transfer` must trigger if ‘transfer_from’ is successful. 
 
-### `fn set_spender(token_id: TokenID, spender_address: Option<protocol_types::PublicAddress>)`
+### `fn set_spender(token_id: TokenID, spender_address: Option<PublicAddress>)`
 
 If `spender_address` is Some, 'set_spender' gives the account identified by `spender_address` the right to transfer the token identified by `token_id` on behalf of its owner. Otherwise, it revokes `get_spender(token_id)` of its right.
 
@@ -104,7 +104,7 @@ If `spender_address` is Some, 'set_spender' gives the account identified by `spe
 
 Event `SetSpender` must trigger if 'set_spender' is successful.
 
-### `fn set_exclusive_spender(spender_address: Option<protocol_types::PublicAddress>)`
+### `fn set_exclusive_spender(spender_address: Option<PublicAddress>)`
 
 If `spender_address` is Some, 'set_exclusive_spender' gives the account identified by `spender_address` the right to transfer *all* tokens owned by `txn.from_address`. Otherwise, it revokes `get_exclusive_spender(token_id)` of its right. Calling this method MUST have the same side effects (except events emitted) as calling `set_spender` for every `token_id` owned by `txn.from_address`, with the same `spender_address`.
 
