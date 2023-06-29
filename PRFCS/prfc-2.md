@@ -24,7 +24,7 @@ The 'Required Calls' section lists the set of methods that all smart contracts t
 
 **Spender**: An account that is approved (using method `set_spender` or `set_exclusive_spender`) to transfer tokens on behalf of the owner. All Tokens can have at most one Spender. Spender is originally set to be the owner if not specified.
 
-**Exclusive Spender**: An exclusive spender is an account that is approved to transfer *all* tokens owned by the owner. An account can be made an Exclusive Spender either through a single call to `set_exclusive_spender` (preferred), or multiple calls to `set_spender`. Exclusive spender is originally set to be the owner if not specified. 
+**Exclusive Spender**: An exclusive spender is an account that is approved to transfer *all* tokens owned by the owner. An account can be made an Spender of all tokens through a single call to `set_exclusive_spender`.
 
 ## Required Types
 ---
@@ -111,15 +111,6 @@ Returns public address of the token spender identified by `id`.
 
 Returns `None` if spender is not specified.
 
-### exclusive_spender
-
-```rust
-fn exclusive_spender(for_address: PublicAddress) -> Option<PublicAddress>
-```
-
-Returns public address of exclusive spender of `for_address`.
-
-Returns `None` if exclusive spender is not specified.
 
 ## Required Calls
 --- 
@@ -161,7 +152,6 @@ Gives the account identified by `spender_address` the right to transfer the toke
 
 'set_spender' must panic if:
 1. get_owner(token_id) != `txn.signer`.
-2. get_exclusive_spender(`txn.signer`) != `spender_address`.
 3. Or, if evaluating 1. causes a panic.
 
 Log `SetSpender` must be triggered if `set_spender` is successful.
@@ -173,6 +163,9 @@ fn set_exclusive_spender(spender_address: PublicAddress)
 ```
 
 Gives the account identified by `spender_address` the right to transfer *all* tokens owned by `txn.signer`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `txn.signer` with the same `spender_address`.
+
+'set_spender' must panic if:
+1. get_owner(token_id) != `txn.signer`.
 
 Log `SetExclusiveSpender` must be triggered if `set_exclusive_spender` is successful.
      
