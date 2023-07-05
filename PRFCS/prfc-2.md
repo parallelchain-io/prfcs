@@ -57,8 +57,7 @@ struct Token {
     // Recommendation: uri should be an Internet URL, viewable on a browser.
     uri: String,
     owner: PublicAddress,
-    spender: PublicAddress,
-    exclusive_spender: PublicAddress
+    spender: Option<PublicAddress>,
 }
 ```
 
@@ -123,7 +122,9 @@ fn transfer(token_id: TokenID, to_address: Option<PublicAddress>)
 
 Transfers the token identified by `token_id` from the account identified by `txn.signer` (its owner), to the account identified by `to_address`. If `to_address` is None, the token will be burnt.
 
-`transfer` must panic if get_owner(token_id) != `txn.signer`.
+`transfer` must panic if:
+1. `txn.signer` != get_owner(token_id).
+2. Or, if evaluating (1.) causes a panic.
 
 Log `Transfer` must be triggered if `transfer` is successful.
 
@@ -135,10 +136,10 @@ fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>,
 
 Transfers the token identified by `token_id` from the account identified by `from_address`, to the account identified by `to_address`, on behalf of the token owner. If `to_address` is None, the token will be burnt.
 
-'transfer_from' must panic if: 
-1. get_spender(token_id) != `txn.signer`.
-2. get_owner(token_id) != `from_address`.
-3. Or, if evaluating 1. or 2. causes a panic.
+`transfer_from` must panic if: 
+1. Some(`txn.signer`) != get_spender(token_id).
+2. `from_address` != get_owner(token_id).
+3. Or, if evaluating (1.) or (2.) causes a panic.
 
 Log `Transfer` must be triggered if `transfer_from` is successful. 
 
@@ -150,9 +151,9 @@ fn set_spender(token_id: TokenID, spender_address: PublicAddress)
 
 Gives the account identified by `spender_address` the right to transfer the token identified by `token_id` on behalf of its owner.
 
-'set_spender' must panic if:
-1. get_owner(token_id) != `txn.signer`.
-3. Or, if evaluating 1. causes a panic.
+`set_spender` must panic if:
+1. `txn.signer` != get_owner(token_id).
+2. Or, if evaluating (1.) causes a panic.
 
 Log `SetSpender` must be triggered if `set_spender` is successful.
 
@@ -164,8 +165,9 @@ fn set_exclusive_spender(spender_address: PublicAddress)
 
 Gives the account identified by `spender_address` the right to transfer *all* tokens owned by `txn.signer`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `txn.signer` with the same `spender_address`.
 
-'set_spender' must panic if:
-1. get_owner(token_id) != `txn.signer`.
+`set_exclusive_spender` must panic if:
+1. `txn.signer` != get_owner(token_id).
+2. Or, if evaluating (1.) causes a panic.
 
 Log `SetExclusiveSpender` must be triggered if `set_exclusive_spender` is successful.
      
