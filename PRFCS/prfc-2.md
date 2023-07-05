@@ -41,10 +41,9 @@ Collection is borsh-serializable structure. It is essentially all information ab
 struct Collection {
     name: String,
     symbol: String,
-    tokens: HashMap<String, Token>,
-    // Recommendation: uri should be an Internet URL, viewable on a browser.
-    uri: Option<String>,
-}
+    tokens: IterableMap<String, Token>,
+    uri: Option<String>
+} 
 ```
 
 Token is borsh-serializable structure.
@@ -52,7 +51,6 @@ Token is borsh-serializable structure.
 ```rust
 struct Token {
     id: TokenID,
-
     name: String,
     // Recommendation: uri should be an Internet URL, viewable on a browser.
     uri: String,
