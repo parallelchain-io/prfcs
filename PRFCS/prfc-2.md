@@ -41,7 +41,7 @@ Collection is borsh-serializable structure. It is essentially all information ab
 struct Collection {
     name: String,
     symbol: String,
-    tokens: IterableMap<String, Token>,
+    tokens: Vec<Token>,
     uri: Option<String>
 } 
 ```
