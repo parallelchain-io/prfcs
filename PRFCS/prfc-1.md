@@ -61,7 +61,7 @@ fn balance_of(address: PublicAddress) -> u64
 Queries the balance for an owner account 'address'.
 
 
-## Required Actions
+## Required Calls
 ---
 
 ### transfer
