@@ -112,7 +112,7 @@ In this section, `++` denotes bytes concatenation.
 | Field | Value |
 | ----- | ----- |
 | Topic | `0u8 ++ owner_address ++ recipient_address: Option<PublicAddress>`  |
-| Value | `amount` |
+| Value | `amount (little-endian bytes from u64)` |
 
 Gets emitted on a successful token transfer through methods `transfer` and `transfer_from`.
 
@@ -121,6 +121,6 @@ Gets emitted on a successful token transfer through methods `transfer` and `tran
 | Field | Value |
 | ----- | ----- |
 | Topic | `1u8 ++ owner_address ++ spender_address` |
-| Value | `amount` |
+| Value | `amount (little-endian bytes from u64)` |
 
 Gets triggered on successful delegation of tokens through method `set_allowance`. 
