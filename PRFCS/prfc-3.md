@@ -11,7 +11,7 @@ ParallelChain Request for Comments 3 defines a standard interface for XPLL's loc
 
 To encourage staking in the network, staking functionalities are provided in the PRFC3 smart contract, where the investors can deposit and stake their locked XPLLs into pools.
 
-The "Required Calls" section lists the set of methods that all smart contracts that want to be PRFC 3-compliant must implement, as well as the behaviour that each defined method must exhibit.
+The below sections list the set of methods that all smart contracts that want to be PRFC 3-compliant must implement, as well as the behavior that each defined method must exhibit.
 
 ## Glossary
 ---

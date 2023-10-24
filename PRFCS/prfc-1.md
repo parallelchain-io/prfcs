@@ -11,7 +11,7 @@ ParallelChain RFC 1 defines a standard interface for fungible tokens implemented
 
 A standard contract interface for fungible tokens allows more seamless interoperability since applications can make the simplifying assumption that all PRFC 1-implementing contracts always export the same, named set of Methods (they may export more).
 
-The below sections list the set of methods that all smart contracts that want to be PRFC 1-compliant must implement, as well as the behaviour that each method must exhibit. Required behaviour involves emitting certain events. These are also listed and described.
+The below sections list the set of methods that all smart contracts that want to be PRFC 1-compliant must implement, as well as the behavior that each method must exhibit. Required behavior involves emitting certain events. These are also listed and described.
 
 ## Notes
 
@@ -72,7 +72,7 @@ Queries the amount of tokens in an account identified by `address`.
 fn transfer(to_address: Option<PublicAddress>, amount: u64)
 ```
 
-Transfers tokens to an address from the account identified by `calling_account`. If `to_address` is None, this burns the amount.
+Transfers tokens to an account identified by `to_address` from the `calling_account`. If `to_address` is None, this burns the amount.
 
 `transfer` must panic if `balance_of(calling_account)` < `amount`.
 
@@ -84,11 +84,11 @@ Log `Transfer` must be emitted if `transfer` is successful.
 fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, amount: u64)
 ```
 
-Transfers tokens to an address on behalf of the owner (`from_address`). If `to_address` is None, this burns the amount.
+Transfers tokens to an account identified by `to_address` on behalf of the owner (`from_address`). If `to_address` is None, this burns the amount.
 
 `transfer_from` must panic if `allowance(from_address, calling_account)` < `amount`.
 
-Log `Transfer` must trigger if `transfer_from` is successful. Note that the topic of the `Transfer` log must contain the owner's address, not `calling_account`.
+Log `Transfer` must be emitted if `transfer_from` is successful. Note that the topic of the `Transfer` log must contain the owner's address (`from_address`), not the address of the `calling_account`.
 
 ### set_allowance
 ```rust

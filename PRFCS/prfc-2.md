@@ -122,7 +122,7 @@ Returns `None` if spender is not specified.
 fn transfer(token_id: TokenID, to_address: Option<PublicAddress>)
 ```
 
-Transfers the token identified by `token_id` from the owner account identified by `calling_account`, to the account identified by `to_address`. If `to_address` is None, the token will be burnt.
+Transfers the token identified by `token_id` from the `calling_account`, to the account identified by `to_address`. If `to_address` is None, the token will be burnt.
 
 `transfer` must panic if:
 1. `calling_account` != `owner(token_id)`.
@@ -164,7 +164,7 @@ Log `SetSpender` must be triggered if `set_spender` is successful.
 fn set_exclusive_spender(spender: PublicAddress)
 ```
 
-Gives the account identified by `spender` the right to transfer *all* tokens owned by `calling_account`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `calling_account` with the same `spender`.
+Grants the account identified by `spender` the right to transfer *all* tokens owned by the `calling_account`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `calling_account` with the same `spender`.
 
 `set_exclusive_spender` must panic if:
 1. `calling_account` != `owner(token_id)`.
