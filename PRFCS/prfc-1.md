@@ -11,12 +11,12 @@ ParallelChain RFC 1 defines a standard interface for fungible tokens implemented
 
 A standard contract interface for fungible tokens allows more seamless interoperability since applications can make the simplifying assumption that all PRFC 1-implementing contracts always export the same, named set of Methods (they may export more).
 
-The below section lists the set of methods that all smart contracts that want to be PRFC 1-compliant must implement, as well as the behaviour that each method must exhibit. Required behaviour involves emitting certain events. These are also listed and described.
+The below sections list the set of methods that all smart contracts that want to be PRFC 1-compliant must implement, as well as the behaviour that each method must exhibit. Required behaviour involves emitting certain events. These are also listed and described.
 
 ## Notes
 
 - The following uses syntax from Rust (version 1.59.0).
-- The data type `PublicAddress` in this context is the type alias to 32-byte slice `[u8; 32]`. 
+- The data type `PublicAddress` is the type alias to a 32-byte slice `[u8; 32]`. 
 - The term `calling_account` refers to the account that invokes the method.
 
 ## Required types
@@ -34,8 +34,7 @@ struct Token {
     decimals: u8,
 
     // ‘Supply’ here means the sum of token balances over *all* addresses at any given point in time.
-    // Total supply may increase, for example, when new tokens are minted, or decrease, for example,
-    // when tokens are burned.
+    // Total supply may increase when new tokens are minted, or decrease when tokens are burned.
     total_supply: u64
 }
 ```
@@ -55,14 +54,14 @@ Returns information about the Token implemented by this contract.
 fn allowance(owner: PublicAddress, spender: PublicAddress) -> u64
 ```
 
-Returns the amount of tokens currently in the spender's allowance that they can spend on the owner’s behalf.
+Returns the amount of tokens that the `spender` can currently spend on behalf of the `owner`.
 
 ### balance_of
 ```rust
 fn balance_of(address: PublicAddress) -> u64
 ```
 
-Queries the balance for an owner account `address`.
+Queries the amount of tokens in an account identified by `address`.
 
 
 ## Required Calls
@@ -73,7 +72,7 @@ Queries the balance for an owner account `address`.
 fn transfer(to_address: Option<PublicAddress>, amount: u64)
 ```
 
-`transfer` transfers tokens to an address from the account identified by `calling_account`. If `to_address` is None, this burns the amount.
+Transfers tokens to an address from the account identified by `calling_account`. If `to_address` is None, this burns the amount.
 
 `transfer` must panic if `balance_of(calling_account)` < `amount`.
 
@@ -85,7 +84,7 @@ Log `Transfer` must be emitted if `transfer` is successful.
 fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, amount: u64)
 ```
 
-`transfer_from` transfers tokens to an address on behalf of the owner (`from_address`). If `to_address` is None, this burns the amount.
+Transfers tokens to an address on behalf of the owner (`from_address`). If `to_address` is None, this burns the amount.
 
 `transfer_from` must panic if `allowance(from_address, calling_account)` < `amount`.
 
@@ -96,7 +95,7 @@ Log `Transfer` must trigger if `transfer_from` is successful. Note that the topi
 fn set_allowance(spender: PublicAddress, amount: u64);
 ```
 
-`set_allowance` allows `spender` to withdraw from `calling_account` up to `amount`. If this method is called again, it overwrites the allowance with `amount`.
+Allows `spender` to withdraw from `calling_account` up to `amount`. If this method is called again, it overwrites the allowance with `amount`.
 
 `set_allowance` must panic if `balance_of(calling_account)` < `amount`.
 
@@ -111,7 +110,7 @@ In this section, `++` denotes bytes concatenation.
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `0u8 ++ owner_address ++ recipient_address: Option<PublicAddress>`  |
+| Topic | `0u8` ++ `owner: PublicAddress` ++ `recipient: Option<PublicAddress>`  |
 | Value | `amount (little-endian bytes from u64)` |
 
 Gets emitted on a successful token transfer through methods `transfer` and `transfer_from`.
@@ -120,7 +119,7 @@ Gets emitted on a successful token transfer through methods `transfer` and `tran
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `1u8 ++ owner_address ++ spender_address` |
+| Topic | `1u8` ++ `owner: PublicAddress` ++ `spender: PublicAddress` |
 | Value | `amount (little-endian bytes from u64)` |
 
 Gets triggered on successful delegation of tokens through method `set_allowance`. 

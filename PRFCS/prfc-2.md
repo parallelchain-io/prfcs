@@ -11,7 +11,7 @@ ParallelChain Request for Comments 2 defines a standard interface for non-fungib
 
 A standard contract interface for non-fungible tokens allows more seamless interoperability, since applications can make the simplifying assumption that all PRFC 2-implementing contracts always export the same, named set of Methods (they may export more).
 
-The 'Required Calls' section lists the set of methods that all smart contracts that want to be PRFC 2-compliant must implement, as well as the behavior that each defined method must exhibit. Required behavior involves emitting certain events. These are also listed and described.
+The below sections list the set of methods that all smart contracts that want to be PRFC 2-compliant must implement, as well as the behavior that each defined method must exhibit. Required behavior involves emitting certain events. These are also listed and described.
 
 ## Glossary
 ---
@@ -29,7 +29,7 @@ The 'Required Calls' section lists the set of methods that all smart contracts t
 ## Notes
 
 - The following uses syntax from Rust (version 1.59.0).
-- The data type `PublicAddress` in this context is the type alias to 32-byte slice `[u8; 32]`. 
+- The data type `PublicAddress` is the type alias to a 32-byte slice `[u8; 32]`. 
 - The term `calling_account` refers to the account that invokes the method.
 
 ## Required Types
@@ -122,7 +122,7 @@ Returns `None` if spender is not specified.
 fn transfer(token_id: TokenID, to_address: Option<PublicAddress>)
 ```
 
-Transfers the token identified by `token_id` from the account identified by its owner (`calling_account`), to the account identified by `to_address`. If `to_address` is None, the token will be burnt.
+Transfers the token identified by `token_id` from the owner account identified by `calling_account`, to the account identified by `to_address`. If `to_address` is None, the token will be burnt.
 
 `transfer` must panic if:
 1. `calling_account` != `owner(token_id)`.
@@ -135,8 +135,7 @@ Log `Transfer` must be triggered if `transfer` is successful.
 ```rust
 fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, token_id: TokenID)
 ```
-
-Transfers the token identified by `token_id` from the account identified by `from_address`, to the account identified by `to_address`, on behalf of the token owner. If `to_address` is None, the token will be burnt.
+Transfers the token identified by `token_id` to the account identified by `to_address` on behalf of the token owner identified by `from_address`. If `to_address` is None, the token will be burnt.
 
 `transfer_from` must panic if: 
 1. Some(`calling_account`) != `spender(token_id)`.
@@ -148,10 +147,10 @@ Log `Transfer` must be triggered if `transfer_from` is successful.
 ### set_spender
 
 ```rust
-fn set_spender(token_id: TokenID, spender_address: PublicAddress)
+fn set_spender(token_id: TokenID, spender: PublicAddress)
 ```
 
-Gives the account identified by `spender_address` the right to transfer the token identified by `token_id` on behalf of its owner.
+Grants the account identified by `spender` the right to transfer the token identified by `token_id` on behalf of its owner.
 
 `set_spender` must panic if:
 1. `calling_account` != `owner(token_id)`.
@@ -162,10 +161,10 @@ Log `SetSpender` must be triggered if `set_spender` is successful.
 ### set_exclusive_spender
 
 ```rust
-fn set_exclusive_spender(spender_address: PublicAddress)
+fn set_exclusive_spender(spender: PublicAddress)
 ```
 
-Gives the account identified by `spender_address` the right to transfer *all* tokens owned by `calling_account`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `calling_account` with the same `spender_address`.
+Gives the account identified by `spender` the right to transfer *all* tokens owned by `calling_account`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `calling_account` with the same `spender`.
 
 `set_exclusive_spender` must panic if:
 1. `calling_account` != `owner(token_id)`.
@@ -182,16 +181,16 @@ In this section, `++` denotes bytes concatenation.
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `0u8 ++ token_id: UTF8 Bytes ++ owner_address ++ recipient_address: PublicAddress: Option<PublicAddress>` |
+| Topic | `0u8` ++ `token_id: UTF8 Bytes` ++ `owner: PublicAddress` ++ `recipient: Option<PublicAddress>` |
 | Value | `0u8` |
 
-Gets trigerred on successful call to methods `transfer`, or `transfer_from`.
+Gets triggered on successful call to methods `transfer`, or `transfer_from`.
 
 ### `SetSpender`
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `1u8 ++ token_id: UTF8 Bytes ++ spender_address: PublicAddress` |
+| Topic | `1u8` ++ `token_id: UTF8 Bytes` ++ `spender: PublicAddress` |
 | Value | `1u8` |
 
 Gets triggered on successful call to method `set_spender`.
@@ -200,7 +199,7 @@ Gets triggered on successful call to method `set_spender`.
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `2u8 ++ owner_address: PublicAddress ++ spender_address: PublicAddress` |
+| Topic | `2u8` ++ `owner: PublicAddress` ++ `spender: PublicAddress` |
 | Value | `2u8` |
 
 Gets triggered on successful call to method `set_exclusive_spender`. 
