@@ -13,6 +13,12 @@ A standard contract interface for fungible tokens allows more seamless interoper
 
 The below section lists the set of methods that all smart contracts that want to be PRFC 1-compliant must implement, as well as the behaviour that each method must exhibit. Required behaviour involves emitting certain events. These are also listed and described.
 
+## Notes
+
+- The following uses syntax from Rust (version 1.59.0).
+- The data type `PublicAddress` in this context is the type alias to 32-byte slice `[u8; 32]`. 
+- The term `calling_account` refers to the account that invokes the method.
+
 ## Required types
 ---
 
@@ -37,8 +43,6 @@ struct Token {
 ## Required Views 
 ---
 
-The following uses syntax from Rust (version 1.59.0).
-
 ### token
 ```rust
 fn token() -> Token
@@ -51,14 +55,14 @@ Returns information about the Token implemented by this contract.
 fn allowance(owner: PublicAddress, spender: PublicAddress) -> u64
 ```
 
-Returns the number of tokens currently in the spender's allowance that they can spend on the ‘owner’s’ behalf.
+Returns the amount of tokens currently in the spender's allowance that they can spend on the owner’s behalf.
 
 ### balance_of
 ```rust
 fn balance_of(address: PublicAddress) -> u64
 ```
 
-Queries the balance for an owner account 'address'.
+Queries the balance for an owner account `address`.
 
 
 ## Required Calls
@@ -66,35 +70,35 @@ Queries the balance for an owner account 'address'.
 
 ### transfer
 ```rust
-fn transfer(to_address: Option<Public_Address>, amount: u64)
+fn transfer(to_address: Option<PublicAddress>, amount: u64)
 ```
 
-`transfer` transfers tokens to an address from the account identified by `txn.signer`. If `to_address` is None, this burns the amount.
+`transfer` transfers tokens to an address from the account identified by `calling_account`. If `to_address` is None, this burns the amount.
 
-`transfer` must panic if `txn.signer`'s balance is less than the amount.
+`transfer` must panic if `balance_of(calling_account)` < `amount`.
 
-Log `Transfer` must be emitted if 'transfer' is successful.
+Log `Transfer` must be emitted if `transfer` is successful.
 
 
 ### transfer_from
 ```rust
-fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, value: u64)
+fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, amount: u64)
 ```
 
-`transfer_from` transfers tokens to an address on behalf of the ‘owner’. If `to_address` is None, this burns the amount.
+`transfer_from` transfers tokens to an address on behalf of the owner (`from_address`). If `to_address` is None, this burns the amount.
 
-`transfer_from` must panic if get_allowance_from(owner) < value.
+`transfer_from` must panic if `allowance(from_address, calling_account)` < `amount`.
 
-Log `Transfer` must trigger if `transfer_from` is successful. Note that the value of the `Transfer` log must contain the owner's address, not `txn.signer`.
+Log `Transfer` must trigger if `transfer_from` is successful. Note that the topic of the `Transfer` log must contain the owner's address, not `calling_account`.
 
 ### set_allowance
 ```rust
-fn set_allowance(spender: PublicAddress, value: u64);
+fn set_allowance(spender: PublicAddress, amount: u64);
 ```
 
-`set_allowance` allows `spender` to withdraw from `tx.signer` account multiple times, up to `value`. If this function is called again it overwrites the current allowance with `value`.
+`set_allowance` allows `spender` to withdraw from `calling_account` up to `amount`. If this method is called again, it overwrites the allowance with `amount`.
 
-`set_allowance` must panic if `txn.signer`'s balance is less than `value`.
+`set_allowance` must panic if `balance_of(calling_account)` < `amount`.
 
 Log `SetAllowance` must be emitted if `set_allowance` is successful.
 
