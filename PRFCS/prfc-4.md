@@ -7,7 +7,7 @@
 ## Summary
 ---
 
-Sometimes it is useful to check if a contract provides certain methods in a contract. Similar to Ethereum's ERC 165, this proposal defines a common method to tell the contract caller about whether it supports a certain kind of methods in an efficient way.
+ParallelChain Request for Comments 4 defines a standard interface for checking if a contract implements certain interfaces. Similar to Ethereum's ERC 165, this proposal defines a common method to tell the contract caller about whether a contract supports a set of methods in an efficient way.
 
 ## Required View
 ---
