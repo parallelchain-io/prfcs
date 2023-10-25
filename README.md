@@ -10,3 +10,9 @@ PRFC (ParallelChain Request for Comments) defines application layer standards wh
 |2 |Non-Fungible Token Standard |ParallelChain Lab |
 |3 |Lockup and Vesting Standard |ParallelChain Lab |
 
+## General Contract Standards
+| Number | Title | Author |
+|:--|:--|:--|
+|4 |Support Interface Standard |ParallelChain Lab |
+
+
