@@ -12,21 +12,17 @@ A standard contract interface for non-fungible tokens allows more seamless inter
 
 The below sections list the set of methods that all smart contracts that want to be PRFC 2-compliant must implement, as well as the behavior that each defined method must exhibit. Required behavior involves emitting certain log messages. These are also listed and described.
 
-## Concepts
-
-PRFC 2 contracts implement a set of Entity and User Role concepts. These concepts are specified in this section and referred to extensively in the rest of the specification.
-
-### Entities
+## Entities
 
 PRFC 2 contracts implement two kinds of entities: Tokens, and Collections.
 
-#### Token
+### Token
 
 A Token is an entity that represents a transferable, non-fungible (or, "unique") object, for example a deed for a plot of land. A single PRFC 2 contract could define multiple tokens, each identified by a String called a Token ID (`TokenID`). 
 
 Within a single contract, token IDs are *unique*. That is, any specific token ID can be associated with *at most* one token in a single PRFC 2 contract, but the same token ID can be used to refer to two distinct tokens in two different PRFC 2 contracts.
 
-##### Token Type
+#### Token Type
 
 Tokens are modelled inside PRFC 2 contracts as a struct with five fields:
 
@@ -43,11 +39,11 @@ struct Token {
 type TokenID = String;
 ```
 
-#### Collection
+### Collection
 
 A Collection is a set of tokens that share common attributes in some business domain. A single PRFC 2 contract represents a *single* Collection. For example, a PRFC 2 contract could store a collection of land titles, with each token in the collection referring to a title for a different plot of land.
 
-##### Collection Type
+#### Collection Type
 
 Collections are modelled inside PRFC 2 contracts as a struct with four fields:
 
@@ -60,21 +56,21 @@ struct Collection {
 } 
 ```
 
-### User Roles
+## User Roles
 
 Users of PRFC 2 contracts are identified by their ParallelChain [account](https://github.com/parallelchain-io/parallelchain-protocol/blob/master/World%20State.md#account), and thus by their unique `PublicAddress`. Further, users of PRFC 2 contracts are associated with a set of privileges called User Roles.
 
 PRFC 2 defines 3 distinct user roles, namely Owner, Operator, and Spender. Each role as well as the relationships between the 3 roles are described in the following subsections.
 
-#### Owner
+### Owner
 
 The owner role represents the privileges of an owner of a token. The owner of a token has the largest set of privileges with respect to that token out of the three roles. 
 
-##### Uniqueness
+#### Uniqueness
 
 Each token in a collection has exactly one owner account. Conversely, each account can be the owner of arbitrarily many tokens in a collection.
 
-##### Privileges
+#### Privileges
 
 The owner of a token is allowed to:
 1. Transfer ownership of the token to a different account.
@@ -83,30 +79,30 @@ The owner of a token is allowed to:
 Related to the above two privileges, *any* account can also:
 1. Delegate "management" of all tokens it owns in the collection to a different account by giving it the [operator](#operator) role.
 
-#### Operator
+### Operator
 
 The operator role represents the privileges of an account that has been designated by an owner account to “operate” or “manage” all tokens owned by the owner account in the specific collection.
 
-##### Uniqueness
+#### Uniqueness
 
 Within a single PRFC 2 contract, an owner account can have at most one operator. Additionally, an owner may not designate itself as its own operator account. 
 
-##### Privileges
+#### Privileges
 
 The operator of an owner account is allowed to:
 1. Transfer ownership of any token owned by the owner account to a different account (including to itself).
 
-#### Spender
+### Spender
 
 The spender role represents the privileges of an account that has been designated by the owner of a token to “manage” a specific token owned by the owner account (this is in contrast to the operator of the owner account, which can manage all tokens owned by the owner account).
 
-##### Uniqueness
+#### Uniqueness
 
 Within a single PRFC 2 contract, a single token can have at most one spender. Additionally, an owner may not designate itself as the spender of a token it owns.
 
 Even though a single token can have at most one spender within a single a PRFC 2 contract, the roles of operator and spender are not absolutely mutually exclusive. In particular, an owner account A is allowed to designate an account B to be its operator, and then designate a different account C to be the spender of one of its tokens. Account B may be set as both the operator of account A, and a spender of one of A’s token, but this is essentially redundant.
 
-##### Privileges
+#### Privileges
 
 The spender of a token is allowed to:
 1. Transfer ownership of the token to a different account (including to itself).
