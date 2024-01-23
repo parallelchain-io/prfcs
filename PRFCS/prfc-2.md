@@ -18,7 +18,7 @@ PRFC 2 contracts implement two kinds of entities: Tokens, and Collections.
 
 ### Token
 
-A Token is an entity that represents a transferable, non-fungible (or, "unique") object, for example a deed for a plot of land. A single PRFC 2 contract could define multiple tokens, each identified by a String called a Token ID (`TokenID`). 
+A Token is an entity that represents a transferable, non-fungible (or, "unique") object, for example a title for a plot of land. A single PRFC 2 contract could define multiple tokens, each identified by a String called a Token ID (`TokenID`). 
 
 Within a single contract, token IDs are *unique*. That is, any specific token ID can be associated with *at most* one token in a single PRFC 2 contract, but the same token ID can be used to refer to two distinct tokens in two different PRFC 2 contracts.
 
@@ -74,7 +74,7 @@ Each token in a collection has exactly one owner account. Conversely, each accou
 
 The owner of a token is allowed to:
 1. Transfer ownership of the token to a different account.
-2. Designate a different account as the [spender] of the token.
+2. Designate a different account as the [spender](#spender) of the token.
 
 Related to the above two privileges, *any* account can also:
 1. Delegate "management" of all tokens it owns in the collection to a different account by giving it the [operator](#operator) role.
@@ -91,6 +91,7 @@ Within a single PRFC 2 contract, an owner account can have at most one operator.
 
 The operator of an owner account is allowed to:
 1. Transfer ownership of any token owned by the owner account to a different account (including to itself).
+2. Designate an account other than the owner account (including itself)  as the [spender](#spender) of any of the owner's tokens.
 
 ### Spender
 
@@ -117,128 +118,166 @@ fn collection() -> Collection
 
 Returns information about the Collection represented by this contract.
 
+### tokens
+
+```rust
+fn tokens(token_ids: Vec<TokenID>) -> Vec<Token>
+```
+
+Returns information about the tokens identified by `token_ids`. If an ID in `token_ids` does not identify a token, it must not appear in the returned vector. 
+
 ### token_owned
 
 ```rust
-fn token_owned(owner: PublicAddress) -> Vec<Token>
+fn tokens_owned(owner: PublicAddress) -> Vec<Token>
 ```
 
 Returns *all* tokens owned by `owner`.
 
-### tokens
-
-```rust
-fn tokens(ids: Vec<TokenID>) -> Vec<Token>
-```
-
-Returns information about the tokens identified by `ids`. 
-
-If an ID does not identify a token, it must not appear in the returned vector. 
-
 ### owner
 
 ```rust
-fn owner(id: TokenID) -> PublicAddress
+fn owner(token_id: TokenID) -> PublicAddress
 ```
 
-Returns public address of the token owner identified by `id`.
+Returns the public address of the owner of the token identified by `token_id`. 
+
+#### Panics
+
+`owner` must panic if `token_id` does not identify a token.
+
+### operator
+
+```rust
+fn operator(owner: PublicAddress) -> Option<PublicAddress>
+```
+
+Returns the public address of the operator of the specified owner address (if any).
 
 ### spender
 
 ```rust
-fn spender(id: TokenID) -> Option<PublicAddress>
+fn spender(token_id: TokenID) -> Option<PublicAddress>
 ```
 
-Returns public address of the token spender identified by `id`.
+Returns the public address of the spender of the token identified by `token_id` (if any).
 
-Returns `None` if spender is not specified.
-
-
-## Required Non-View Methods
-
-### transfer
-
-```rust
-fn transfer(token_id: TokenID, to_address: Option<PublicAddress>)
-```
-
-Transfers the token identified by `token_id` from the `calling_account`, to the account identified by `to_address`. If `to_address` is None, the token will be burnt.
-
-`transfer` must panic if:
-1. `calling_account` != `owner(token_id)`.
-2. Or, if evaluating (1.) causes a panic.
-
-Log `Transfer` must be triggered if `transfer` is successful.
+## Required World State-mutating Methods
 
 ### transfer_from
 
 ```rust
 fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, token_id: TokenID)
 ```
-Transfers the token identified by `token_id` to the account identified by `to_address` on behalf of the token owner identified by `from_address`. If `to_address` is None, the token will be burnt.
+Transfers the token identified by `token_id`, currently owned by the account identified by `from_address`, to the account identified by `to_address`.
 
-`transfer_from` must panic if: 
-1. Some(`calling_account`) != `spender(token_id)`.
-2. `from_address` != `owner(token_id)`.
-3. Or, if evaluating (1.) or (2.) causes a panic.
+#### Spender is always un-set on transfer
 
-Log `Transfer` must be triggered if `transfer_from` is successful. 
+Upon a successful transfer, `transfer_from` must set the spender of the token identified by `token_id` to `None`, **bypassing** the checks in the [panics section](#panics-2) of `set_spender`.
+
+#### Token burning
+
+If `to_address` is `None`, the token will be destroyed. E.g., it must no longer be queryable from any of the [required view methods](#required-view-methods).
+
+#### Panics
+
+`transfer_from` must panic if:
+1. The calling account (`calling_account`) is not any of:
+    - The owner of the token (`owner(token_id)`).
+    - The operator of the owner of the token (`operator(owner(token_id))`).
+    - The spender of the token (`spender(token_id)`).
+2. The `from_address` is not the current owner of the token (`owner(token_id)`).
+3. The `to_address` is already the current owner of the token (`owner(token_id)`).
+4. Or if evaluating (1.) or (2.) or (3.) causes a panic.
+
+`transfer_from` is taken to be successful if it does not panic.
+
+#### Log
+
+Log `TransferFrom` must be triggered if `transfer_from` is successful. 
 
 ### set_spender
 
 ```rust
-fn set_spender(token_id: TokenID, spender: PublicAddress)
+fn set_spender(token_id: TokenID, spender: Option<PublicAddress>)
 ```
 
-Grants the account identified by `spender` the right to transfer the token identified by `token_id` on behalf of its owner.
+Grants the account identified by `spender` the Spender role for the token identified by `token_id`.
+
+#### Replacing the current spender
+
+If `spender(token_id)` is currently Some, `set_spender` replaces the current spender.
+
+#### Un-setting spender
+
+If `spender` is `None`, `set_spender` removes the Spender role from the current `spender(token_id)`.
+
+#### Panics
 
 `set_spender` must panic if:
-1. `calling_account` != `owner(token_id)`.
-2. Or, if evaluating (1.) causes a panic.
+1. The calling account (`calling_account()`) is not any of:
+    - The owner of token (`owner(token_id)`).
+    - The operator (`operator(owner(token_id))`)of the current owner of the token (`owner(token_id)`)
+2. The account to be set as spender (`spender`) is already the owner of the token (`owner(token_id)`).
+3. Of if evaluating (1.) or (2.) causes a panic.
+
+`set_spender` is taken to be successful if it does not panic.
+
+#### Log
 
 Log `SetSpender` must be triggered if `set_spender` is successful.
 
-### set_exclusive_spender
+### set_operator
 
 ```rust
-fn set_exclusive_spender(spender: PublicAddress)
+fn set_operator(operator: Option<PublicAddress>)
 ```
 
-Grants the account identified by `spender` the right to transfer *all* tokens owned by the `calling_account`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `calling_account` with the same `spender`.
+Grants the account identified by `operator` the  the Operator role for the account `calling_account()`.
 
-`set_exclusive_spender` must panic if:
-1. `calling_account` != `owner(token_id)`.
-2. Or, if evaluating (1.) causes a panic.
+#### Replacing the current operator
 
-Log `SetExclusiveSpender` must be triggered if `set_exclusive_spender` is successful.
+If `operator(calling_account())` is currently Some, `set_operator` replaces the current operator.
+
+#### Un-setting operator
+
+If `operator` is `None`, `set_operator` removes the Operator role from the current `operator(calling_account())`.
+
+#### Panic
+
+`set_operator` must panic if `operator == calling_account()`.
+
+#### Log
+
+Log `SetOperator` must be triggered if `set_operator` is successful.
      
 ## Required Logs
 
 In this section, `++` denotes bytes concatenation.
 
-### `Transfer`
+### `TransferFrom`
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `0u8` ++ `token_id: UTF8 Bytes` ++ `owner: PublicAddress` ++ `recipient: Option<PublicAddress>` |
-| Value | `0u8` |
+| Topic | `0u8` ++ `token_id: Base64URL` ++ `from_address: PublicAddress` ++ `to_address: Option<PublicAddress>` |
+| Value | Empty. |
 
-Gets triggered on successful call to methods `transfer`, or `transfer_from`.
+Gets triggered on successful call to methods `transfer_from`.
 
 ### `SetSpender`
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `1u8` ++ `token_id: UTF8 Bytes` ++ `spender: PublicAddress` |
-| Value | `1u8` |
+| Topic | `1u8` ++ `token_id: Base64URL` ++ `spender: Option<PublicAddress>` |
+| Value | Empty. |
 
 Gets triggered on successful call to method `set_spender`.
 
-### `SetExclusiveSpender`
+### `SetOperator`
 
 | Field | Value |
 | ----- | ----- |
 | Topic | `2u8` ++ `owner: PublicAddress` ++ `spender: PublicAddress` |
-| Value | `2u8` |
+| Value | Empty. |
 
-Gets triggered on successful call to method `set_exclusive_spender`. 
+Gets triggered on successful call to method `set_operator`. 
