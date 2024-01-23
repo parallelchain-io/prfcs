@@ -173,7 +173,9 @@ Transfers the token identified by `token_id`, currently owned by the account ide
 
 #### Spender is always un-set on transfer
 
-Upon a successful transfer, `transfer_from` must set the spender of the token identified by `token_id` to `None`, **bypassing** the checks in the [panics section](#panics-2) of `set_spender`.
+Upon a successful transfer, `transfer_from` must set the spender of the token identified by `token_id` to `None`, **bypassing** the checks in the [panics section](#panics-2) of `set_spender`
+
+To clarify, the spender of the token identified by `token_id` is not allowed to set the spender of the token using `set_spender`, but is allowed to transfer the token to an account other than the owner, which sets the spender of the token to `None`.
 
 #### Token burning
 
@@ -277,7 +279,7 @@ Gets triggered on successful call to method `set_spender`.
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `2u8` ++ `owner: PublicAddress` ++ `spender: PublicAddress` |
+| Topic | `2u8` ++ `owner: PublicAddress` ++ `operator: PublicAddress` |
 | Value | Empty. |
 
 Gets triggered on successful call to method `set_operator`. 
