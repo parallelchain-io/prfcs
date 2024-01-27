@@ -30,13 +30,39 @@ Tokens are modelled inside PRFC 2 contracts as a struct with five fields:
 struct Token {
     id: TokenID,
     name: String,
-    // Recommendation: uri should be an Internet URL, viewable on a browser.
-    uri: String,
+    // Recommendation: if `uri` is Some, then it should be a URI that points to a
+    // JSON object containing the fields specified in the "Token Metadata JSON schema".
+    uri: Option<String>,
     owner: PublicAddress,
     spender: Option<PublicAddress>,
 }
 
 type TokenID = String;
+```
+
+#### Token Metadata JSON schema
+
+The PRFC 2 Token Metadata JSON schema is identical to Ethereum's ERC721 Metadata JSON Schema. It contains the following fields:
+
+```json
+{
+    "title": "Asset Metadata",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Identifies the asset to which this NFT represents"
+        },
+        "description": {
+            "type": "string",
+            "description": "Describes the asset to which this NFT represents"
+        },
+        "image": {
+            "type": "string",
+            "description": "A URI pointing to a resource with mime type image/* representing the asset to which this NFT represents. Consider making any images at a width between 320 and 1080 pixels and aspect ratio between 1.91:1 and 4:5 inclusive."
+        }
+    }
+}
 ```
 
 ### Collection
