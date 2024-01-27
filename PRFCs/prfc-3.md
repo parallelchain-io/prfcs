@@ -5,7 +5,6 @@
 | 3   | Lockup and Vesting Standard | ParallelChain Lab | 1 | May 2nd, 2023 | 
 
 ## Summary
----
   
 ParallelChain Request for Comments 3 defines a standard interface for XPLL's lockup and vesting. Lockup and vesting are applied to maintain the value and stability of XPLL. Lockup refers to a period in which the XPLLs are locked and cannot be transferred or sold, while vesting refers to a process of releasing the locked XPLLs gradually over a period of time, at regular intervals. This ensures that the XPLLs are distributed in a controlled and predictable manner, as well as incentivising long-term holding of XPLLs, which can ultimately benefit the development and success of ParallelChain Lab's projects.
 
@@ -14,7 +13,6 @@ To encourage staking in the network, staking functionalities are provided in the
 The below sections list the set of methods that all smart contracts that want to be PRFC 3-compliant must implement, as well as the behavior that each defined method must exhibit.
 
 ## Glossary
----
 
 **token_owner**: The address to which the XPLLs in this contract will be transferred after being claimed.
 
@@ -32,7 +30,6 @@ There are five possible phases in the vesting schedule:
 
 
 ## Lockup and Vesting Schedule
----
 
 There are different lockup and vesting schedules which can be categorized as follows:
 
@@ -69,7 +66,6 @@ There are different lockup and vesting schedules which can be categorized as fol
 
 
 ## Require Types
----
 
 The types alias used in the specification.
 
@@ -91,7 +87,6 @@ enum Phase {
 ```
 
 ## Required Views
----
 
 ### overview
 
@@ -149,7 +144,6 @@ fn balance_in_deposit() -> u64
 Returns the number of locked XPLLs (in Grays) that are deposited in a pool.
 
 ## Required Calls (General)
----
 
 ### init
 

@@ -5,7 +5,6 @@
 | 1   | Fungible Token Standard | ParallelChain Lab | 3 | July 23rd, 2022 | 
 
 ## Summary
----
 
 ParallelChain RFC 1 defines a standard interface for fungible tokens implemented as ParallelChain smart contracts. “Fungible tokens” is taken here to have the same meaning as in Ethereum's ERC 20, namely a set of identical, transferable entities. XPLL, for example, is a fungible token.
 
@@ -20,7 +19,6 @@ The below sections list the set of methods that all smart contracts that want to
 - The term `calling_account` refers to the account that invokes the method.
 
 ## Required types
----
 
 A borsh-serializable structure to represent a Token.
 
@@ -40,7 +38,6 @@ struct Token {
 ```
 
 ## Required Views 
----
 
 ### token
 ```rust
@@ -65,7 +62,6 @@ Queries the amount of tokens in an account identified by `address`.
 
 
 ## Required Calls
----
 
 ### transfer
 ```rust
@@ -102,7 +98,6 @@ Allows `spender` to withdraw from `calling_account` up to `amount`. If this meth
 Log `SetAllowance` must be emitted if `set_allowance` is successful.
 
 ## Required Logs
----
 
 In this section, `++` denotes bytes concatenation.
 
