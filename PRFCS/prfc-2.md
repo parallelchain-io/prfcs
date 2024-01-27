@@ -4,15 +4,25 @@
 | --- | ----- | ---- | --- | --- |
 | 2   | Non-Fungible Token Standard | ParallelChain Lab | 4 (WIP) | 22 January, 2024 (WIP) | 
 
-## Summary
+## Introduction
   
 The Non-Fungible Token Standard (PRFC 2) defines a standard interface for non-fungible tokens implemented as ParallelChain smart contracts. "Non-Fungible Tokens" or NFTs is taken here to have the same meaning as in Ethereum's ERC-721, namely a set of transferable entities on a blockchain with identification metadata unique to its creator. For example, a title for a plot of land is a non-fungible token, since a title identifies a singular, unique plot of land (i.e., no two titles identifies the same plot of land).
 
 A standard contract interface for non-fungible tokens allows more seamless interoperability, since applications can make the simplifying assumption that all PRFC 2-implementing contracts always export the same, named set of Methods (they may export more).
 
+## Organization
+
+This specification is organized into six sections:
+1. [Entities](#entities) describes the two major entities implemented by PRFC 2 contracts: Tokens, and Collections.
+2. [User Roles](#user-roles) describes the three user roles implemented by PRFC 2 contracts: Owner, Operator, and Spender.
+3. [Required View Methods](#required-view-methods) specifies the set of [view methods](https://github.com/parallelchain-io/parallelchain-protocol/blob/master/Contracts.md#view-calls) that PRFC 2 contracts must implement.
+4. [Required World State-mutating Methods](#required-world-state-mutating-methods) specifies the set of world-state mutating methods that PRFC 2 contracts must implement.
+5. [Optional View Methods](#optional-view-methods) specifies a set of view methods that PRFC 2 contracts *may* implement. 
+6. Finally, [Required Logs](#required-logs) specifies the set of logs that must be emitted by PRFC 2 contracts to notify users of specific, significant events.
+
 ## Entities
 
-PRFC 2 contracts implement two kinds of entities: Tokens, and Collections.
+PRFC 2 contracts implement two kinds of entities: Tokens, and Collections. This section specifies each entity.
 
 ### Token
 
@@ -22,7 +32,7 @@ Within a single contract, token IDs are *unique*. That is, any specific token ID
 
 #### Token Type
 
-Tokens are modelled inside PRFC 2 contracts as a struct with five fields:
+Information about a specific token is returned from the [`token`](#token) view method in the form of the following struct type:
 
 ```rust
 struct Token {
@@ -69,7 +79,7 @@ A Collection is a set of tokens that share common attributes in some business do
 
 #### Collection Type
 
-Collections are modelled inside PRFC 2 contracts as a struct with four fields:
+Information about the collection is returned from the [`collection`](#collection) method in the form of the following struct type:
 
 ```rust
 struct Collection {
@@ -267,7 +277,7 @@ If `operator` is `None`, `set_operator` removes the Operator role from the curre
 
 Log `SetOperator` must be triggered if `set_operator` is successful.
 
-## Optional view methods
+## Optional View Methods
 
 ### `total_supply`
 
@@ -304,7 +314,7 @@ In this section, `++` denotes bytes concatenation.
 | Topic | `0u8` ++ `token_id: Base64URL` ++ `from_address: PublicAddress` ++ `to_address: Option<PublicAddress>` |
 | Value | Empty. |
 
-Gets triggered on successful call to methods `transfer_from`.
+Gets triggered on successful call to method `transfer_from`.
 
 ### `SetSpender`
 
