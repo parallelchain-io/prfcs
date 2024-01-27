@@ -1,4 +1,4 @@
-# ParallelChain Request for Comments 2 (PRFC 2)
+# PRFC 2: Non-Fungible Token Standard
 
 | PRFC | Title | Author | Version | Date First Published |
 | --- | ----- | ---- | --- | --- |
