@@ -10,8 +10,6 @@ The Non-Fungible Token Standard (PRFC 2) defines a standard interface for non-fu
 
 A standard contract interface for non-fungible tokens allows more seamless interoperability, since applications can make the simplifying assumption that all PRFC 2-implementing contracts always export the same, named set of Methods (they may export more).
 
-The below sections list the set of methods that all smart contracts that want to be PRFC 2-compliant must implement, as well as the behavior that each defined method must exhibit. Required behavior involves emitting certain log messages. These are also listed and described.
-
 ## Entities
 
 PRFC 2 contracts implement two kinds of entities: Tokens, and Collections.
@@ -139,7 +137,7 @@ The spender of a token is allowed to:
 
 ## Required View Methods
 
-### collection
+### `collection`
 
 ```rust
 fn collection() -> Collection
@@ -147,7 +145,7 @@ fn collection() -> Collection
 
 Returns information about the Collection represented by this contract.
 
-### tokens
+### `tokens`
 
 ```rust
 fn tokens(token_ids: Vec<TokenID>) -> Vec<Token>
@@ -155,15 +153,7 @@ fn tokens(token_ids: Vec<TokenID>) -> Vec<Token>
 
 Returns information about the tokens identified by `token_ids`. If an ID in `token_ids` does not identify a token, it must not appear in the returned vector. 
 
-### token_owned
-
-```rust
-fn tokens_owned(owner: PublicAddress) -> Vec<Token>
-```
-
-Returns *all* tokens owned by `owner`.
-
-### owner
+### `owner`
 
 ```rust
 fn owner(token_id: TokenID) -> PublicAddress
@@ -175,7 +165,7 @@ Returns the public address of the owner of the token identified by `token_id`.
 
 `owner` must panic if `token_id` does not identify a token.
 
-### operator
+### `operator`
 
 ```rust
 fn operator(owner: PublicAddress) -> Option<PublicAddress>
@@ -183,7 +173,7 @@ fn operator(owner: PublicAddress) -> Option<PublicAddress>
 
 Returns the public address of the operator of the specified owner address (if any).
 
-### spender
+### `spender`
 
 ```rust
 fn spender(token_id: TokenID) -> Option<PublicAddress>
@@ -193,7 +183,7 @@ Returns the public address of the spender of the token identified by `token_id` 
 
 ## Required World State-mutating Methods
 
-### transfer_from
+### `transfer_from`
 
 ```rust
 fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, token_id: TokenID)
@@ -227,7 +217,7 @@ If `to_address` is `None`, the token will be destroyed. E.g., it must no longer 
 
 Log `TransferFrom` must be triggered if `transfer_from` is successful. 
 
-### set_spender
+### `set_spender`
 
 ```rust
 fn set_spender(token_id: TokenID, spender: Option<PublicAddress>)
@@ -258,7 +248,7 @@ If `spender` is `None`, `set_spender` removes the Spender role from the current 
 
 Log `SetSpender` must be triggered if `set_spender` is successful.
 
-### set_operator
+### `set_operator`
 
 ```rust
 fn set_operator(operator: Option<PublicAddress>)
@@ -281,7 +271,33 @@ If `operator` is `None`, `set_operator` removes the Operator role from the curre
 #### Log
 
 Log `SetOperator` must be triggered if `set_operator` is successful.
-     
+
+## Optional view methods
+
+### `total_supply`
+
+```rust
+fn total_supply() -> u64
+```
+
+Returns the number of tokens currently in the collection.
+
+### `token_by_index`
+
+```rust
+fn token_by_index(index: u64) -> Option<Token>
+```
+
+Enumerates through every token in the collection using an index number. The sort order is not specified.
+
+### `token_of_owner_by_index`
+
+```rust
+fn token_of_owner_by_index(owner: PublicAddress, index: u64) -> Option<Token>
+```
+
+Enumerates through every token in the collection owned by the specified account. The sort order is not specified.
+
 ## Required Logs
 
 In this section, `++` denotes bytes concatenation.
