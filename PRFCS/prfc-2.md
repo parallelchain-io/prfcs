@@ -112,7 +112,7 @@ The operator role represents the privileges of an account that has been designat
 
 #### Uniqueness
 
-Within a single PRFC 2 contract, an owner account can have at most one operator. Additionally, an owner may not designate itself as its own operator account. 
+Within a single PRFC 2 contract, an owner account can have at most one operator. 
 
 #### Privileges
 
@@ -126,7 +126,7 @@ The spender role represents the privileges of an account that has been designate
 
 #### Uniqueness
 
-Within a single PRFC 2 contract, a single token can have at most one spender. Additionally, an owner may not designate itself as the spender of a token it owns.
+Within a single PRFC 2 contract, a single token can have at most one spender. 
 
 Even though a single token can have at most one spender within a single a PRFC 2 contract, the roles of operator and spender are not absolutely mutually exclusive. In particular, an owner account A is allowed to designate an account B to be its operator, and then designate a different account C to be the spender of one of its tokens. Account B may be set as both the operator of account A, and a spender of one of A’s token, but this is essentially redundant.
 
@@ -203,7 +203,7 @@ If `to_address` is `None`, the token will be destroyed. E.g., it must no longer 
 #### Panics
 
 `transfer_from` must panic if:
-1. The calling account (`calling_account`) is not any of:
+1. The calling account (`calling_account()`) is not any of:
     - The owner of the token (`owner(token_id)`).
     - The operator of the owner of the token (`operator(owner(token_id))`).
     - The spender of the token (`spender(token_id)`).
@@ -238,9 +238,8 @@ If `spender` is `None`, `set_spender` removes the Spender role from the current 
 `set_spender` must panic if:
 1. The calling account (`calling_account()`) is not any of:
     - The owner of token (`owner(token_id)`).
-    - The operator (`operator(owner(token_id))`)of the current owner of the token (`owner(token_id)`)
-2. The account to be set as spender (`spender`) is already the owner of the token (`owner(token_id)`).
-3. Of if evaluating (1.) or (2.) causes a panic.
+    - The operator (`operator(owner(token_id))`) of the current owner of the token (`owner(token_id)`)
+2. Of if evaluating (1.) causes a panic.
 
 `set_spender` is taken to be successful if it does not panic.
 
@@ -263,10 +262,6 @@ If `operator(calling_account())` is currently Some, `set_operator` replaces the 
 #### Un-setting operator
 
 If `operator` is `None`, `set_operator` removes the Operator role from the current `operator(calling_account())`.
-
-#### Panic
-
-`set_operator` must panic if `operator == calling_account()`.
 
 #### Log
 
