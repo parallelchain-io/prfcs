@@ -48,11 +48,11 @@ type TokenID = String;
 
 #### Token Metadata JSON schema
 
-The PRFC 2 Token Metadata JSON schema is identical to Ethereum's ERC721 Metadata JSON Schema. It contains the following fields:
+The PRFC 2 Token Metadata JSON schema is identical to Ethereum's ERC721 Metadata JSON Schema:
 
 ```json
 {
-    "title": "Asset Metadata",
+    "title": "Token Metadata",
     "type": "object",
     "properties": {
         "name": {
