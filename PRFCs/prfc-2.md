@@ -83,7 +83,6 @@ Information about the collection is returned from the [`collection`](#collection
 struct Collection {
     name: String,
     symbol: String,
-    tokens: Vec<Token>,
     // If `uri` is Some, it should be a valid URI. However, PRFC 2 does not currrently
     // specify any recommendations or requirements as to what kind of resource the URI
     // should point to.
