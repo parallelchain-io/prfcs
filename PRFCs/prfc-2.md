@@ -2,7 +2,7 @@
 
 | PRFC | Title | Author | Version | Date First Published |
 | --- | ----- | ---- | --- | --- |
-| 2   | Non-Fungible Token Standard | ParallelChain Lab | 4 (WIP) | 22 January, 2024 (WIP) | 
+| 2   | Non-Fungible Token Standard | ParallelChain Lab | 4 | 22 January, 2024 | 
 
 ## Introduction
   
