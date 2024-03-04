@@ -1,205 +1,304 @@
-# ParallelChain Request for Comments 2 (PRFC 2)
+# PRFC 2: Non-Fungible Token Standard
 
 | PRFC | Title | Author | Version | Date First Published |
 | --- | ----- | ---- | --- | --- |
-| 2   | Non-Fungible Token Standard | ParallelChain Lab | 3 | May 10th, 2023 | 
+| 2   | Non-Fungible Token Standard | ParallelChain Lab | 4 (WIP) | 22 January, 2024 (WIP) | 
 
-## Summary
----
+## Introduction
   
-ParallelChain Request for Comments 2 defines a standard interface for non-fungible tokens implemented as ParallelChain smart contracts. "Non-Fungible Tokens" or NFTs is taken here to have the same meaning as in Ethereum's ERC-721, namely a set of transferable entities on a blockchain with identification metadata unique to its creator. For example, a deed for a plot of land is a non-fungible token, since a deed identifies a singular, unique plot of land (i.e., no two deeds identifies the same plot of land).
+The Non-Fungible Token Standard (PRFC 2) defines a standard interface for non-fungible tokens implemented as ParallelChain smart contracts. "Non-Fungible Tokens" or NFTs is taken here to have the same meaning as in Ethereum's ERC-721, namely a set of transferable entities on a blockchain with identification metadata unique to its creator. For example, a title for a plot of land is a non-fungible token, since a title identifies a singular, unique plot of land (i.e., no two titles identifies the same plot of land).
 
-A standard contract interface for non-fungible tokens allows more seamless interoperability, since applications can make the simplifying assumption that all PRFC 2-implementing contracts always export the same, named set of Methods (they may export more).
+## Organization
 
-The below sections list the set of methods that all smart contracts that want to be PRFC 2-compliant must implement, as well as the behavior that each defined method must exhibit. Required behavior involves emitting certain events. These are also listed and described.
+This specification is organized into seven sections:
+1. [Entities](#entities) describes the two major entities implemented by PRFC 2 contracts: Tokens, and Collections.
+2. [User Roles](#user-roles) describes the three user roles implemented by PRFC 2 contracts: Owner, Operator, and Spender.
+3. [Required View Methods](#required-view-methods) specifies the set of [view methods](https://github.com/parallelchain-io/parallelchain-protocol/blob/master/Contracts.md#view-calls) that PRFC 2 contracts *must* implement.
+4. [Required World State-mutating Methods](#required-world-state-mutating-methods) specifies the set of world-state mutating methods that PRFC 2 contracts *must* implement.
+5. [PRFC 2 Metadata Extension](#prfc-2-metadata-extension) specifies a set of  *optional* view methods for getting metadata about tokens and collections.
+6. [PRFC 2 Enumeration Extension](#prfc-2-enumeration-extension) specifies a set of *optional* view methods for enumerating through all tokens in a collection.
+7. Finally, [Required Logs](#required-logs) specifies the set of logs that must be emitted by PRFC 2 contracts to notify users of specific, significant events.
 
-## Glossary
----
+## Entities
 
-**Collection**: A set of Tokens with shared properties. A single PRFC 2-implementing contract represents a single Collection. For example, 'CryptoKitties' is a Collection, whilst a single CryptoKitty is a Token.  
+PRFC 2 contracts implement two kinds of entities: Tokens, and Collections. This section specifies each entity.
 
-**Token**: An instance of a Collection.
+### Token
 
-**Owner**: An account that owns the token.
+A Token is an entity that represents a transferable, non-fungible (or, "unique") object, for example a title for a plot of land. A single PRFC 2 contract could define multiple tokens, each identified by a String called a Token ID (`TokenID`). 
 
-**Spender**: An account that is approved (using method `set_spender` or `set_exclusive_spender`) to transfer tokens on behalf of the owner. All Tokens can have at most one Spender. Spender is originally set to be the owner if not specified.
+Within a single contract, token IDs are *unique*. That is, any specific token ID can be associated with *at most* one token in a single PRFC 2 contract, but the same token ID can be used to refer to two distinct tokens in two different PRFC 2 contracts.
 
-**Exclusive Spender**: An exclusive spender is an account that is approved to transfer *all* tokens owned by the owner. An account can be made an Spender of all tokens through a single call to `set_exclusive_spender`.
+### Collection
 
-## Notes
+A Collection is a set of tokens that share common attributes in some business domain. A single PRFC 2 contract represents a *single* Collection. For example, a PRFC 2 contract could store a collection of land titles, with each token in the collection referring to a title for a different plot of land.
 
-- The following uses syntax from Rust (version 1.59.0).
-- The data type `PublicAddress` is the type alias to a 32-byte slice `[u8; 32]`. 
-- The term `calling_account` refers to the account that invokes the method.
+## User Roles
 
-## Required Types
----
+Users of PRFC 2 contracts are identified by their ParallelChain [account](https://github.com/parallelchain-io/parallelchain-protocol/blob/master/World%20State.md#account), and thus by their unique `PublicAddress`. Further, users of PRFC 2 contracts are associated with a set of privileges called User Roles.
 
-Token Identifier is a String.
+PRFC 2 defines 3 distinct user roles, namely Owner, Operator, and Spender. Each role as well as the relationships between the 3 roles are described in the following subsections.
 
-```rust
-type TokenID = String;
-```
+### Owner
 
-Collection is borsh-serializable structure. It is essentially all information about the contract.
+The owner role represents the privileges of an owner of a token. The owner of a token has the largest set of privileges with respect to that token out of the three roles. 
 
-```rust
-struct Collection {
-    name: String,
-    symbol: String,
-    tokens: Vec<Token>,
-    uri: Option<String>
-} 
-```
+#### Uniqueness
 
-Token is borsh-serializable structure.
+Each token in a collection has exactly one owner account. Conversely, each account can be the owner of arbitrarily many tokens in a collection.
 
-```rust
-struct Token {
-    id: TokenID,
-    name: String,
-    // Recommendation: uri should be an Internet URL, viewable on a browser.
-    uri: String,
-    owner: PublicAddress,
-    spender: Option<PublicAddress>,
-}
-```
+#### Privileges
 
-## Required Views 
----
+The owner of a token is allowed to:
+1. Transfer ownership of the token to a different account.
+2. Designate a different account as the [spender](#spender) of the token.
 
-### collection
+Related to the above two privileges, *any* account can also:
+1. Delegate "management" of all tokens it owns in the collection to multiple different accounts by granting them the [operator](#operator) role.
 
-```rust
-fn collection() -> Collection
-```
+### Operator
 
-Returns information about the Collection represented by this contract.
+The operator role represents the privileges of an account that has been designated by an owner account to “operate” or “manage” all tokens owned by the owner account in the specific collection.
 
-### token_owned
+#### Uniqueness
 
-```rust
-fn token_owned(owner: PublicAddress) -> Vec<Token>
-```
+Within a single PRFC 2 contract, a single owner account can have *multiple* operators.
 
-Returns *all* tokens owned by `owner`.
+#### Privileges
 
-### tokens
+The operator of an owner account is allowed to:
+1. Transfer ownership of any token owned by the owner account to a different account (including to itself).
+2. Designate an account other than the owner account as the [spender](#spender) of any of the owner's tokens.
 
-```rust
-fn tokens(ids: Vec<TokenID>) -> Vec<Token>
-```
+### Spender
 
-Returns information about the tokens identified by `ids`. 
+The spender role represents the privileges of an account that has been designated by the owner of a token to “manage” a specific token owned by the owner account (this is in contrast to the operator of the owner account, which can manage all tokens owned by the owner account).
 
-If an ID does not identify a token, it must not appear in the returned vector. 
+#### Uniqueness
 
-### owner
+Within a single PRFC 2 contract, a single token can have at most one spender. 
+
+Even though a single token can have at most one spender within a single a PRFC 2 contract, the roles of operator and spender are not absolutely mutually exclusive. In particular, an owner account A is allowed to designate an account B to be its operator, and then designate a different account C to be the spender of one of its tokens. Account B may be set as both the operator of account A, and a spender of one of A’s token, but this is essentially redundant.
+
+#### Privileges
+
+The spender of a token is allowed to:
+1. Transfer ownership of the token to a different account (including to itself).
+
+## Required View Methods
+
+### Owner
 
 ```rust
-fn owner(id: TokenID) -> PublicAddress
+fn owner(token_id: TokenID) -> PublicAddress
 ```
 
-Returns public address of the token owner identified by `id`.
+Returns the public address of the owner of the token identified by `token_id`. 
 
-### spender
+#### Panics
+
+`owner` must panic if `token_id` does not identify a token.
+
+### Operator
 
 ```rust
-fn spender(id: TokenID) -> Option<PublicAddress>
+fn is_operator(owner: PublicAddress, operator: PublicAddress) -> bool
 ```
 
-Returns public address of the token spender identified by `id`.
+Check whether an account (identified by `operator`) is currently set as an operator for a given account (identified by `owner`).
 
-Returns `None` if spender is not specified.
-
-
-## Required Calls
---- 
-
-### transfer
+### Spender
 
 ```rust
-fn transfer(token_id: TokenID, to_address: Option<PublicAddress>)
+fn spender(token_id: TokenID) -> Option<PublicAddress>
 ```
 
-Transfers the token identified by `token_id` from the `calling_account`, to the account identified by `to_address`. If `to_address` is None, the token will be burnt.
+Returns the public address of the spender of the token identified by `token_id` (if any).
 
-`transfer` must panic if:
-1. `calling_account` != `owner(token_id)`.
-2. Or, if evaluating (1.) causes a panic.
+## Required World State-mutating Methods
 
-Log `Transfer` must be triggered if `transfer` is successful.
-
-### transfer_from
+### Transfer From
 
 ```rust
 fn transfer_from(from_address: PublicAddress, to_address: Option<PublicAddress>, token_id: TokenID)
 ```
-Transfers the token identified by `token_id` to the account identified by `to_address` on behalf of the token owner identified by `from_address`. If `to_address` is None, the token will be burnt.
+Transfers the token identified by `token_id`, currently owned by the account identified by `from_address`, to the account identified by `to_address`.
 
-`transfer_from` must panic if: 
-1. Some(`calling_account`) != `spender(token_id)`.
-2. `from_address` != `owner(token_id)`.
-3. Or, if evaluating (1.) or (2.) causes a panic.
+#### Spender is always un-set on transfer
 
-Log `Transfer` must be triggered if `transfer_from` is successful. 
+Upon a successful transfer, `transfer_from` must set the spender of the token identified by `token_id` to `None`, **bypassing** the checks in the [panics section](#panics-2) of `set_spender`
 
-### set_spender
+To clarify, the spender of the token identified by `token_id` is not allowed to set the spender of the token using `set_spender`, but is allowed to transfer the token to an account other than the owner, which sets the spender of the token to `None`.
+
+#### Token burning
+
+If `to_address` is `None`, the token will be destroyed. E.g., it must no longer be queryable from any of the [required view methods](#required-view-methods).
+
+#### Panics
+
+`transfer_from` must panic if:
+1. The calling account (`calling_account()`) is not any of:
+    - The owner of the token (`owner(token_id)`).
+    - The operator of the owner of the token (`operator(owner(token_id))`).
+    - The spender of the token (`spender(token_id)`).
+2. The `from_address` is not the current owner of the token (`owner(token_id)`).
+3. The `to_address` is already the current owner of the token (`owner(token_id)`).
+4. Or if evaluating (1.) or (2.) or (3.) causes a panic.
+
+`transfer_from` is taken to be successful if it does not panic.
+
+#### Log
+
+Log `TransferFrom` must be triggered if `transfer_from` is successful. 
+
+### Set Spender
 
 ```rust
-fn set_spender(token_id: TokenID, spender: PublicAddress)
+fn set_spender(token_id: TokenID, spender: Option<PublicAddress>)
 ```
 
-Grants the account identified by `spender` the right to transfer the token identified by `token_id` on behalf of its owner.
+Grant the account identified by `spender` the Spender role for the token identified by `token_id`.
+
+#### Replacing the current spender
+
+If `spender(token_id)` is currently Some, `set_spender` replaces the current spender.
+
+#### Un-setting spender
+
+If `spender` is `None`, `set_spender` removes the spender role from the current `spender(token_id)`.
+
+#### Panics
 
 `set_spender` must panic if:
-1. `calling_account` != `owner(token_id)`.
-2. Or, if evaluating (1.) causes a panic.
+1. The calling account (`calling_account()`) is not any of:
+    - The owner of token (`owner(token_id)`).
+    - The operator (`operator(owner(token_id))`) of the current owner of the token (`owner(token_id)`)
+2. Of if evaluating (1.) causes a panic.
+
+`set_spender` is taken to be successful if it does not panic.
+
+#### Log
 
 Log `SetSpender` must be triggered if `set_spender` is successful.
 
-### set_exclusive_spender
+### Set Operator
 
 ```rust
-fn set_exclusive_spender(spender: PublicAddress)
+fn set_operator(operator: PublicAddress, approved: bool)
 ```
 
-Grants the account identified by `spender` the right to transfer *all* tokens owned by the `calling_account`. Calling this method MUST have the same effects as calling `set_spender` for every token owned by `calling_account` with the same `spender`.
+If `approved`, grant the account identified by `operator` the operator role for the calling account. If `!approved`, revoke the operator role from `operator`.
 
-`set_exclusive_spender` must panic if:
-1. `calling_account` != `owner(token_id)`.
-2. Or, if evaluating (1.) causes a panic.
+#### Log
 
-Log `SetExclusiveSpender` must be triggered if `set_exclusive_spender` is successful.
-     
+Log `SetOperator` must be triggered if `set_operator` is successful.
+
+## PRFC 2 Metadata Extension
+
+The PRFC 2 Metadata Extension is a set of methods that PRFC 2 contracts can optionally implement to enable users to get a richer set of information about the collection and the tokens in the collection.
+
+### Collection Name
+
+```rust
+fn collection_name() -> String
+```
+
+Get the name of the collection.
+
+### Collection Symbol
+
+```rust
+fn collection_symbol() -> String
+```
+
+Get the symbol of the collection.
+
+### Token URI
+
+```rust
+fn token_uri(token_id: TokenID) -> String
+```
+
+Get a Uniform Resource Identifier (URI) pointing to metadata for a specific token (identified by `token_id`). This URI *should* point to a JSON object that implements the [Token Metadata JSON Schema](#token-metadata-json-schema).
+
+#### Token Metadata JSON Schema
+
+```rust
+{
+    "title": "Token Metadata",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Identifies the asset to which this NFT represents"
+        },
+        "description": {
+            "type": "string",
+            "description": "Describes the asset to which this NFT represents"
+        },
+        "image": {
+            "type": "string",
+            "description": "A URI pointing to a resource with mime type image/* representing the asset to which this NFT represents. Consider making any images at a width between 320 and 1080 pixels and aspect ratio between 1.91:1 and 4:5 inclusive."
+        }
+    }
+}
+```
+
+## PRFC 2 Enumeration Extension 
+
+The PRFC 2 Enumeration Extension is a set of methods that PRFC 2 contracts can optionally implement to helps users iterate through all of the tokens in the collection.
+
+### Total Supply
+
+```rust
+fn total_supply() -> u64
+```
+
+Returns the number of tokens currently in the collection.
+
+### Token by Index
+
+```rust
+fn token_by_index(index: u64) -> Option<TokenID>
+```
+
+Enumerates through every token in the collection using an index number. The sort order is not specified.
+
+### Token of Owner by Index
+
+```rust
+fn token_of_owner_by_index(owner: PublicAddress, index: u64) -> Option<TokenID>
+```
+
+Enumerates through every token in the collection owned by the specified account. The sort order is not specified.
+
 ## Required Logs
----
 
-In this section, `++` denotes bytes concatenation.
+In this section, "++" denotes bytes concatenation.
 
-### `Transfer`
-
-| Field | Value |
-| ----- | ----- |
-| Topic | `0u8` ++ `token_id: UTF8 Bytes` ++ `owner: PublicAddress` ++ `recipient: Option<PublicAddress>` |
-| Value | `0u8` |
-
-Gets triggered on successful call to methods `transfer`, or `transfer_from`.
-
-### `SetSpender`
+### Transfer From
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `1u8` ++ `token_id: UTF8 Bytes` ++ `spender: PublicAddress` |
-| Value | `1u8` |
+| Topic | `0u8` ++ `token_id: Base64URL` ++ `from_address: PublicAddress` ++ `to_address: Option<PublicAddress>` |
+| Value | Empty. |
+
+Gets triggered on successful call to method `transfer_from`.
+
+### Set Spender
+
+| Field | Value |
+| ----- | ----- |
+| Topic | `1u8` ++ `token_id: Base64URL` ++ `spender: Option<PublicAddress>` |
+| Value | Empty. |
 
 Gets triggered on successful call to method `set_spender`.
 
-### `SetExclusiveSpender`
+### Set Operator
 
 | Field | Value |
 | ----- | ----- |
-| Topic | `2u8` ++ `owner: PublicAddress` ++ `spender: PublicAddress` |
-| Value | `2u8` |
+| Topic | `2u8` ++ `owner: PublicAddress` ++ `operator: PublicAddress` ++ `approved: bool` |
+| Value | Empty. |
 
-Gets triggered on successful call to method `set_exclusive_spender`. 
+Gets triggered on successful call to method `set_operator`. 
