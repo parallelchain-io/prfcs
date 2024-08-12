@@ -40,6 +40,7 @@ struct Token {
 ## Required Views 
 
 ### token
+
 ```rust
 fn token() -> Token
 ```
@@ -47,18 +48,24 @@ fn token() -> Token
 Returns information about the Token implemented by this contract.
 
 ### allowance
+
 ```rust
 fn allowance(owner: PublicAddress, spender: PublicAddress) -> u64
 ```
 
 Returns the amount of tokens that the `spender` can currently spend on behalf of the `owner`.
 
+`allowance` must never panic. If `owner` does not have an allowance, this function must return 0.
+
 ### balance_of
+
 ```rust
 fn balance_of(address: PublicAddress) -> u64
 ```
 
-Queries the amount of tokens in an account identified by `address`.
+Queries the amount of tokens owned by the account identified by `address`.
+
+`balance_of` must never panic. If `address` does not own any tokens, this function must return 0.
 
 
 ## Required Calls
