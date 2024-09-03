@@ -262,7 +262,9 @@ Returns the number of tokens currently in the collection.
 fn token_by_index(index: u64) -> Option<TokenID>
 ```
 
-Enumerates through every token in the collection using an index number. The sort order is not specified.
+Enumerates through every token in the collection using an index number.
+
+The sort order is not specified, but indices should start at 0 and be "continuous", that is, if `token_by_index(n)` returns `None`, then `token_by_index(m)` for any `m > n` should also return `None`.
 
 ### Token of Owner by Index
 
@@ -270,7 +272,9 @@ Enumerates through every token in the collection using an index number. The sort
 fn token_of_owner_by_index(owner: PublicAddress, index: u64) -> Option<TokenID>
 ```
 
-Enumerates through every token in the collection owned by the specified account. The sort order is not specified.
+Enumerates through every token in the collection owned by the specified account.
+
+The sort order is not specified, but indices should start at 0 and be "continuous", that is, if `token_of_owner_by_index(n)` returns `None`, then `token_of_owner_by_index(m)` for any `m > n` should also return `None`.
 
 ## Required Logs
 
