@@ -10,3 +10,9 @@ ParallelChain Request for Comments (PRFCs) are publications that specify contrac
 |2 |Non-Fungible Token Standard |ParallelChain Lab|
 |3 |Lockup and Vesting Standard |ParallelChain Lab|
 
+## General Contract Standards
+| Number | Title | Author |
+|:--|:--|:--|
+|4 |Support Interface Standard |ParallelChain Lab |
+
+
